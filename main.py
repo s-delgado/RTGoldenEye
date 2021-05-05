@@ -1,28 +1,21 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from functions import generate_volumebars
+# from functions import generate_volumebars
 
 plt.style.use('fivethirtyeight')
 
 
 def animate(i):
     data = pd.read_csv('data/data.csv')
-    data = generate_volumebars(data, frequency=1).reset_index()
-    data2 = pd.read_csv('data/data2.csv')
-    data2 = generate_volumebars(data2, frequency=1).reset_index()
-
-    y1 = data['close'][-50:]  # price
-    # x1 = data['timestamp']
-    x1 = [x for x in range(50)][-len(y1):]
-
-    y2 = data2['close'][-50:]   # price
-    # x2 = data2['timestamp']
-    x2 = [x for x in range(50)][-len(y2):]
-
+    feeds = data.feed.unique()
     plt.cla()
-    plt.plot(x1, y1, label='spot')
-    plt.plot(x2, y2, label='futures')
+    for f in feeds:
+        y = data[data.feed == f]['bid']
+        x = data[data.feed == f]['timestamp']
+
+        plt.plot(x, y, label='bid_' + f)
+
     plt.legend(loc='upper left')
     plt.tight_layout()
 

@@ -1,22 +1,39 @@
-from binance.client import Client
-from keys import keys
-from binance.websockets import BinanceSocketManager
-from twisted.internet import reactor
-from save_data import process_message, process_message2
-import time
+from cryptofeed.callback import TickerCallback, TradeCallback, BookCallback, FundingCallback
+from cryptofeed import FeedHandler
+from cryptofeed.exchanges import Binance, Huobi, OKEx, Upbit, FTX, Bybit
+from cryptofeed.defines import TRADES, TICKER, L3_BOOK, BID, ASK, L2_BOOK
+from save_data import book
+import asyncio
 
-client = Client(keys['binance']['apiKey'], keys['binance']['secret'])
-bm = BinanceSocketManager(client)
-bm2 = BinanceSocketManager(client)
 
-conn_key = bm.start_aggtrade_socket('BTCUSDT', process_message)
-conn_key2 = bm2.start_aggtrade_futures_socket('BTCUSDT', process_message2)
+f = FeedHandler()
 
-bm.start()
-bm2.start()
 
-time.sleep(120)
-print("end")
-bm.close()
-bm2.close()
-reactor.stop()
+def stop():
+    loop = asyncio.get_event_loop()
+    loop.stop()
+
+
+def main():
+    loop = asyncio.get_event_loop()
+    f.add_feed(Binance(symbols=['BTC-USDT'], channels=[L2_BOOK], callbacks={L2_BOOK: BookCallback(book)}))
+    f.add_feed(Huobi(symbols=['BTC-USDT'], channels=[L2_BOOK], callbacks={L2_BOOK: BookCallback(book)}))
+    f.add_feed(OKEx(symbols=['BTC-USDT'], channels=[L2_BOOK], callbacks={L2_BOOK: BookCallback(book)}))
+    f.add_feed(Upbit(symbols=['BTC-USDT'], channels=[L2_BOOK], callbacks={L2_BOOK: BookCallback(book)}))
+    f.add_feed(FTX(symbols=['BTC-USDT'], channels=[L2_BOOK], callbacks={L2_BOOK: BookCallback(book)}))
+    f.add_feed(Bybit(symbols=['BTC-USDT'], channels=[L2_BOOK], callbacks={L2_BOOK: BookCallback(book)}))
+
+    print('start')
+    f.run(start_loop=False)
+    loop.call_later(60, stop)
+    loop.run_forever()
+    print('end')
+
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
