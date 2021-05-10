@@ -2,42 +2,34 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 # from functions import generate_volumebars
+from fees import taker
+import os
 
-plt.style.use('fivethirtyeight')
+colors = ['b', 'g', 'r', 'c', 'm', 'k', 'y', 'plum', 'olive']
+fieldnames = ["timestamp", "feed", "symbol", "bid", "ask",
+              "bookSize", "bidQuantityAll", "askQuantityAll", "bidQuantity", "askQuantity"]
 
 
-def animate(i):
-    data = pd.read_csv('data/data.csv')
-    feeds = data.feed.unique()
+def animate(j):
+    files = ['data/' + x for x in os.listdir('data/') if x[0:4] == 'book']
     plt.cla()
-    for f in feeds:
-        y = data[data.feed == f]['bid']
-        x = data[data.feed == f]['timestamp']
+    for i, file in enumerate(files):
+        df = pd.read_csv(file, names=fieldnames)
+        feed = file.split('-')[1]
+        fee = taker[feed]
 
-        plt.plot(x, y, label='bid_' + f)
+        y = df['bid'] * (1 - fee)
+        y2 = df['ask'] * (1 + fee)
+        x = df['timestamp']
+
+        plt.plot(x, y, label='bid_' + feed, color=colors[i])
+        plt.plot(x, y2, label='ask_' + feed, color=colors[i])
 
     plt.legend(loc='upper left')
     plt.tight_layout()
+# animate(0)
 
 
 ani = FuncAnimation(plt.gcf(), animate, interval=1000)
 plt.tight_layout()
 plt.show()
-
-
-# {
-#     "e": "aggTrade",  // Event type
-# "E": 123456789,   // Event time
-# "s": "BNBBTC",    // Symbol
-# "a": 12345,       // Aggregate trade ID
-# "p": "0.001",     // Price
-# "q": "100",       // Quantity
-# "f": 100,         // First trade ID
-# "l": 105,         // Last trade ID
-# "T": 123456785,   // Trade time
-# "m": true,        // Is the buyer the market maker?
-# "M": true         // Ignore
-# }
-
-
-
