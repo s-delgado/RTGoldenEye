@@ -1,6 +1,6 @@
-import csv
 import os
 import aiofiles
+import csv
 
 depth = 20
 
@@ -14,23 +14,6 @@ def is_file_empty(file_path):
 async def book(feed, symbol, book, timestamp, receipt):
     file_name = 'data/book-'+feed+'-'+symbol+'.csv'
     async with aiofiles.open(file_name, 'a') as csv_file:
-        data = {
-            "timestamp": timestamp,
-            "feed": feed,
-            "symbol": symbol,
-            "bid": max(book["bid"]),
-            "ask": min(book["ask"]),
-            "bookSize": len(book['ask']),
-            "bidQuantityAll": sum(book["bid"].values()),
-            "askQuantityAll": sum(book["ask"].values()),
-            "bidQuantity": sum(book["bid"].values()[-depth:]),
-            "askQuantity": sum(book["ask"].values()[0:depth]),
-        }
-        line = []
-
-        for c in data.keys():
-            line.append(str(data.get(c, '')))
-
-        line = ','.join(line) + '\n'
-
-        await csv_file.write(line)
+        writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        line = [str(timestamp), feed, symbol, str(book['bid']), str(book['ask'])]
+        await writer.writerow(line)

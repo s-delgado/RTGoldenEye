@@ -3,4 +3,7 @@ pandas
 numpy
 seaborn
 cryptofeed
+cryptostore[redis]
 aiofiles
+git+https://github.com/manahl/arctic.git
+
